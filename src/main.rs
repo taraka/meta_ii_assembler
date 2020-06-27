@@ -1,4 +1,4 @@
-use std::io::{self, Write, Read};
+use std::io::{self, Read};
 use std::str;
 use std::collections::{HashMap, LinkedList};
 
@@ -34,6 +34,16 @@ impl<'a> Parser<'a> {
                 self.parse_instruction(l);
             } else {
                 self.parse_label(l)
+            }
+        }
+
+        for lm in &self.label_markers {
+            let label_addr = self.labels.get(&lm.label[..]).expect("Undefined label");
+
+            let mut offset: usize = 0;
+            for b in label_addr.to_le_bytes().iter() {
+                self.code.insert(lm.addr + offset, *b);
+                offset += 1;
             }
         }
     }
