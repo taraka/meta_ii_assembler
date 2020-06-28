@@ -1,6 +1,7 @@
 use std::io::{self, Read, Write};
 use std::str;
 use std::collections::{HashMap, LinkedList};
+use std::error::Error;
 
 struct Parser<'a> {
     text: &'a str,
@@ -28,6 +29,12 @@ enum Opcode {
     SET = 11,
     R = 12,
     END = 13,
+    STR = 14,
+    NUM = 15,
+    LB = 16,
+    GN1 = 17,
+    GN2 = 18,
+    B = 19,
 }
 
 impl<'a> Parser<'a> {
@@ -83,6 +90,12 @@ impl<'a> Parser<'a> {
             Opcode::SET => self.set(),
             Opcode::R => self.r(),
             Opcode::END => self.end(),
+            Opcode::STR => self.str(),
+            Opcode::NUM => self.num(),
+            Opcode::LB => self.lb(),
+            Opcode::GN1 => self.gn1(),
+            Opcode::GN2 => self.gn2(),
+            Opcode::B => self.b(l),
         }
     }
 
@@ -144,13 +157,56 @@ impl<'a> Parser<'a> {
         self.code.push(Opcode::END as u8);
     }
 
-    fn write_label(&mut self, label: &str) {
-        self.add_label_addr(label.trim().split_whitespace().nth(1).unwrap());
+    fn str(&mut self) {
+        self.code.push(Opcode::STR as u8);
     }
 
-    fn write_string(&mut self, label: &str) {
-        //Need to parse and write the string
-        println!("{}", label.trim().split_whitespace().nth(1).unwrap());
+    fn num(&mut self) {
+        self.code.push(Opcode::NUM as u8);
+    }
+
+    fn lb(&mut self) {
+        self.code.push(Opcode::LB as u8);
+    }
+
+    fn gn1(&mut self) {
+        self.code.push(Opcode::GN1 as u8);
+    }
+
+    fn gn2(&mut self) {
+        self.code.push(Opcode::GN2 as u8);
+    }
+
+    fn write_label(&mut self, line: &str) {
+        self.add_label_addr(line.trim().split_whitespace().nth(1).unwrap());
+    }
+
+    fn b(&mut self, l: &str) {
+        self.code.push(Opcode::B as u8);
+        self.write_label(l);
+    }
+
+    fn write_string(&mut self, line: &str) {
+
+        let mut in_string = false;
+
+        for c in  line.as_bytes() {
+            //String char
+            if in_string && *c != b'\'' {
+                self.code.push(*c);
+            }
+
+            // End of string
+            if in_string && *c == b'\'' {
+                self.code.push(0);
+                break;
+            }
+
+            // Start of string
+            if !in_string && *c == b'\'' {
+                in_string = true;
+            }
+        }
     }
 
     fn add_label_addr(&mut self, label: &str) {
@@ -165,6 +221,19 @@ impl<'a> Parser<'a> {
             self.code.push(*b);
         }
 
+    }
+
+    /// Header format
+    /// XXXXXX Magic bytes ".meta"
+    /// X version (Currently 0)
+    /// X Endienness 0 for LE
+    /// X addr size
+    fn header(&self) -> [u8; 8] {
+
+
+        let addrsize = std::mem::size_of::<usize>() as u8;
+
+        [46,109,101,116,97,0,0, addrsize]
     }
 
     fn opcode(text: &str) -> Opcode {
@@ -182,6 +251,11 @@ impl<'a> Parser<'a> {
             "SET" => Opcode::SET,
             "R" => Opcode::R,
             "END" => Opcode::END,
+            "STR" => Opcode::STR,
+            "NUM" => Opcode::NUM,
+            "LB" => Opcode::LB,
+            "GN1" => Opcode::GN1,
+            "GN2" => Opcode::GN2,
             _ => panic!(format!("Unknown opcode: {}", text))
         }
     }
@@ -189,14 +263,20 @@ impl<'a> Parser<'a> {
 
 
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     let mut code_bytes: Vec<u8> = Vec::new();
-    io::stdin().read_to_end(&mut code_bytes);
+    io::stdin().read_to_end(&mut code_bytes)?;
 
     let code = str::from_utf8(&code_bytes[..]).unwrap();
     let mut parser = Parser::new(&code);
     parser.parse();
-    // TODO: Need to add a program headers including info about address sizes and endinenness
-    io::stdout().write_all(&parser.code[..]);
 
+    println!("{:?}", parser.header());
+    println!("{:?}", parser.code);
+
+    // TODO: Need to add a program headers including info about address sizes and endinenness
+    io::stdout().write_all(&parser.header()[..])?;
+    io::stdout().write_all(&parser.code[..])?;
+
+    Ok(())
 }
