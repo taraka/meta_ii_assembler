@@ -1,4 +1,4 @@
-use std::io::{self, Read};
+use std::io::{self, Read, Write};
 use std::str;
 use std::collections::{HashMap, LinkedList};
 
@@ -50,9 +50,9 @@ impl<'a> Parser<'a> {
         }
 
         for lm in &self.label_markers {
-            println!("Looking for label: {}", lm.label);
+            //println!("Looking for label: {}", lm.label);
             let label_addr = self.labels.get(&lm.label[..]).expect("Undefined label");
-            println!("Address for label: {}, is {}", lm.label, label_addr);
+            //println!("Address for label: {}, is {}", lm.label, label_addr);
             let mut offset: usize = 0;
             for b in label_addr.to_le_bytes().iter() {
                 self.code.insert(lm.addr + offset, *b);
@@ -60,7 +60,7 @@ impl<'a> Parser<'a> {
             }
         }
 
-        println!("{:?}", self.code);
+        //println!("{:?}", self.code);
     }
 
     fn parse_label(&mut self, l: &str) {
@@ -188,6 +188,7 @@ fn main() {
 
     let code = str::from_utf8(&code_bytes[..]).unwrap();
     let mut parser = Parser::new(&code);
-    parser.parse()
+    parser.parse();
+    io::stdout().write_all(&parser.code[..]);
 
 }
