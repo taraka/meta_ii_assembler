@@ -1,0 +1,23 @@
+	ADR PROGRAM
+PROGRAM
+	TST '.SYNTAX'
+	BF A1
+	ID
+	BE
+	CL 'ADR '
+	CI
+	OUT
+A2
+	CLL ST
+	BT A2
+	SET
+	BE
+	TST '.END'
+	BE
+	CL 'END'
+	OUT
+A1
+A0
+	R
+	END
+ST
