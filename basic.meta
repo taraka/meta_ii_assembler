@@ -1,0 +1,6 @@
+.SYNTAX PROGRAM
+
+PROGRAM = '.SYNTAX' .ID .OUT('ADR ' *)
+          $ ST
+          '.END' .OUT('END') .,
+.END

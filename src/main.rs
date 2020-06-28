@@ -56,13 +56,15 @@ impl<'a> Parser<'a> {
             }
         }
 
+        //println!("{:?}", self.code);
+
         for lm in &self.label_markers {
             //println!("Looking for label: {}", lm.label);
             let label_addr = self.labels.get(&lm.label[..]).expect("Undefined label");
             //println!("Address for label: {}, is {}", lm.label, label_addr);
             let mut offset: usize = 0;
             for b in label_addr.to_le_bytes().iter() {
-                self.code.insert(lm.addr + offset, *b);
+                self.code[lm.addr + offset] = *b;
                 offset += 1;
             }
         }
