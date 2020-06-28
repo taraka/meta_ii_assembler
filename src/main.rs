@@ -88,18 +88,17 @@ impl<'a> Parser<'a> {
 
     fn adr(&mut self, l: &str) {
         self.code.push(Opcode::ADR as u8);
-        self.add_label_addr(l.trim().split_whitespace().nth(1).unwrap());
+        self.write_label(l);
     }
 
     fn bf(&mut self, l: &str) {
         self.code.push(Opcode::BF as u8);
-        self.add_label_addr(l.trim().split_whitespace().nth(1).unwrap());
+        self.write_label(l);
     }
 
     fn tst(&mut self, l: &str) {
         self.code.push(Opcode::TST as u8);
-        //Need to parse and write the string
-        println!("{}", l.trim().split_whitespace().nth(1).unwrap());
+        self.write_string(l);
     }
 
     fn id(&mut self) {
@@ -120,18 +119,17 @@ impl<'a> Parser<'a> {
 
     fn cl(&mut self, l: &str) {
         self.code.push(Opcode::CL as u8);
-        //Need to parse and write the string
-        println!("{}", l.trim().split_whitespace().nth(1).unwrap());
+        self.write_string(l);
     }
 
     fn cll(&mut self, l: &str) {
         self.code.push(Opcode::CLL as u8);
-        self.add_label_addr(l.trim().split_whitespace().nth(1).unwrap());
+        self.write_label(l);
     }
 
     fn bt(&mut self, l: &str) {
         self.code.push(Opcode::BT as u8);
-        self.add_label_addr(l.trim().split_whitespace().nth(1).unwrap());
+        self.write_label(l);
     }
 
     fn set(&mut self) {
@@ -144,6 +142,15 @@ impl<'a> Parser<'a> {
 
     fn end(&mut self) {
         self.code.push(Opcode::END as u8);
+    }
+
+    fn write_label(&mut self, label: &str) {
+        self.add_label_addr(label.trim().split_whitespace().nth(1).unwrap());
+    }
+
+    fn write_string(&mut self, label: &str) {
+        //Need to parse and write the string
+        println!("{}", label.trim().split_whitespace().nth(1).unwrap());
     }
 
     fn add_label_addr(&mut self, label: &str) {
@@ -189,6 +196,7 @@ fn main() {
     let code = str::from_utf8(&code_bytes[..]).unwrap();
     let mut parser = Parser::new(&code);
     parser.parse();
+    // TODO: Need to add a program headers including info about address sizes and endinenness
     io::stdout().write_all(&parser.code[..]);
 
 }
