@@ -271,8 +271,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut parser = Parser::new(&code);
     parser.parse();
 
-    println!("{:?}", parser.header());
-    println!("{:?}", parser.code);
+    // println!("{:?}", parser.header());
+    // println!("{:?}", parser.code);
 
     // TODO: Need to add a program headers including info about address sizes and endinenness
     io::stdout().write_all(&parser.header()[..])?;
