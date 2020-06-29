@@ -10,6 +10,7 @@ struct Parser<'a> {
     code: Vec<u8>
 }
 
+#[derive(Debug)]
 struct LabelMarker {
     label: String,
     addr: usize
@@ -29,7 +30,7 @@ enum Opcode {
     SET = 11,
     R = 12,
     END = 13,
-    STR = 14,
+    SR = 14,
     NUM = 15,
     LB = 16,
     GN1 = 17,
@@ -43,7 +44,7 @@ impl<'a> Parser<'a> {
             text,
             labels: HashMap::new(),
             label_markers: LinkedList::new(),
-            code: Vec::new()
+            code: Vec::new(),
         }
     }
 
@@ -56,7 +57,8 @@ impl<'a> Parser<'a> {
             }
         }
 
-        //println!("{:?}", self.code);
+        //println!("{:?}", self.label_markers);
+        //println!("{:?}", self.labels);
 
         for lm in &self.label_markers {
             //println!("Looking for label: {}", lm.label);
@@ -92,7 +94,7 @@ impl<'a> Parser<'a> {
             Opcode::SET => self.set(),
             Opcode::R => self.r(),
             Opcode::END => self.end(),
-            Opcode::STR => self.str(),
+            Opcode::SR => self.sr(),
             Opcode::NUM => self.num(),
             Opcode::LB => self.lb(),
             Opcode::GN1 => self.gn1(),
@@ -159,8 +161,8 @@ impl<'a> Parser<'a> {
         self.code.push(Opcode::END as u8);
     }
 
-    fn str(&mut self) {
-        self.code.push(Opcode::STR as u8);
+    fn sr(&mut self) {
+        self.code.push(Opcode::SR as u8);
     }
 
     fn num(&mut self) {
@@ -253,7 +255,7 @@ impl<'a> Parser<'a> {
             "SET" => Opcode::SET,
             "R" => Opcode::R,
             "END" => Opcode::END,
-            "STR" => Opcode::STR,
+            "SR" => Opcode::SR,
             "NUM" => Opcode::NUM,
             "LB" => Opcode::LB,
             "GN1" => Opcode::GN1,
